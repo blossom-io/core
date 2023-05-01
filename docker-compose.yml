@@ -1,0 +1,26 @@
+version: "3.9"
+services:
+    core:
+        build: .
+        container_name: core
+        image: core
+        # environment:
+        # PG_URL: 'postgres://user:pass@postgres:5432/postgres'
+        # RMQ_URL: 'amqp://guest:guest@rabbitmq:5672/'
+        ports:
+            - 8080:8080
+        depends_on:
+            - pg
+    pg:
+        image: postgres:15-alpine
+        container_name: pg
+        restart: unless-stopped
+        volumes:
+            - pg-data:/var/lib/postgresql/data
+        environment:
+            - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+        ports:
+            - 5432:5432
+
+volumes:
+    pg-data:
