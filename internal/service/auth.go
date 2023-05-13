@@ -17,7 +17,7 @@ import (
 var (
 	ErrIndexerNotFound          = fmt.Errorf("service - FindIndexerAndShowIDByURL - unknown indexer")
 	ErrURLIsEmpty               = fmt.Errorf("service - AddShow - URL is empty")
-	ErrUserNotSubscribed        = errors.New("user is not subscribed")
+	ErrUserNotSubscribed        = errors.New("not_subscribed")
 	ErrSubchatNotFoundNotActive = errors.New("subchat not found or not active")
 )
 
@@ -104,7 +104,8 @@ func (au *auth) AuthTwitchSubchat(ctx context.Context, authCode, state string) (
 	}
 
 	if !isSubscribed {
-		return "", fmt.Errorf("service - AuthTwitchSubchat: %w, twitch_username: %s (twitch_user id: %d) is not subscribed to %s (owner_twitch_id: %d)", ErrUserNotSubscribed, user.TwitchUsername, user.TwitchID, state, ownerTwitchID)
+		au.log.Error("svc - AuthTwitchSubchat: user is not subscribed", "twitch_username", user.TwitchUsername, "twitch_user_id", user.TwitchID, "broadcaster_id", broadcasterID)
+		return "", ErrUserNotSubscribed
 	}
 
 	funcs := []func(context.Context) error{

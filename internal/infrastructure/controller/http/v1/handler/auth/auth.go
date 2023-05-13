@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -72,11 +73,21 @@ func (au *authRoutes) AuthTwitchSubchat(w http.ResponseWriter, r *http.Request) 
 	au.log.Info("auth - AuthTwitchSubchat", in)
 
 	inviteKey, err := au.auth.AuthTwitchSubchat(r.Context(), in.Code, in.State)
+	if errors.Is(err, service.ErrUserNotSubscribed) {
+		au.log.Error("auth - AuthTwitchSubchat: %w", err)
+
+		invFailedRedirectURL := fmt.Sprintf("%s/failed?err=%s&state=%s", au.cfg.SubchatInviteRedirectURL, err, in.State)
+		http.Redirect(w, r, invFailedRedirectURL, http.StatusFound)
+
+		return
+	}
 	if err != nil {
 		au.log.Error("auth - AuthTwitchSubchat: %w", err)
 
 		invFailedRedirectURL := fmt.Sprintf("%s/failed?err=%s&state=%s", au.cfg.SubchatInviteRedirectURL, err, in.State)
 		http.Redirect(w, r, invFailedRedirectURL, http.StatusFound)
+
+		return
 	}
 
 	invSucceedRedirectURL := fmt.Sprintf("%s/succeed?code=%s&state=%s", au.cfg.SubchatInviteRedirectURL, inviteKey, in.State)
