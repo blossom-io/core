@@ -100,7 +100,7 @@ func (au *auth) AuthTwitchSubchat(ctx context.Context, authCode, state string) (
 
 	isSubscribed, err := userClient.CheckUserSubscription(ctx, fmt.Sprint(user.TwitchID), broadcasterID)
 	if err != nil {
-		return "", fmt.Errorf("service - AuthTwitchSubchat: %w", err)
+		return "", ErrUserNotSubscribed
 	}
 
 	if !isSubscribed {
