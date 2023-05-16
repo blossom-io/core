@@ -97,7 +97,7 @@ func (ut *userTwitch) CheckUserSubscription(ctx context.Context, userID, broadca
 	}
 
 	if res.ResponseCommon.StatusCode != http.StatusOK {
-		return false, fmt.Errorf("%s", res.ResponseCommon.ErrorMessage)
+		return false, nil
 	}
 
 	for _, sub := range res.Data.UserSubscriptions {
@@ -106,7 +106,7 @@ func (ut *userTwitch) CheckUserSubscription(ctx context.Context, userID, broadca
 		}
 	}
 
-	return false, err
+	return false, nil
 }
 
 func (ut *userTwitch) UserInfo(ctx context.Context) (user entity.User, token entity.Token, err error) {
