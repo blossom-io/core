@@ -5,7 +5,9 @@ __debug_bin
 LICENSE.md
 CHANGELOG.md
 README.md
-docker-compose.yaml
+THANKS.md
+docker-compose.yml
 go.work
 go.work.sum
 main
+.env

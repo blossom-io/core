@@ -1,7 +1,8 @@
 BEGIN;
 
 CREATE TABLE person (
-    twitch_id bigint PRIMARY KEY,
+    id SERIAL UNIQUE PRIMARY KEY,
+    twitch_id bigint UNIQUE,
     twitch_username text,
     telegram_id bigint UNIQUE,
     telegram_username text,
@@ -10,7 +11,7 @@ CREATE TABLE person (
 );
 
 CREATE TABLE token (
-    twitch_id bigint PRIMARY KEY,
+    twitch_id bigint UNIQUE,
     twitch_auth_code text,
     twitch_bearer text,
     twitch_bearer_expires_at timestamp with time zone,
@@ -19,7 +20,7 @@ CREATE TABLE token (
 );
 
 CREATE TABLE subchat (
-    twitch_id bigint NOT NULL,
+    twitch_id bigint UNIQUE NOT NULL,
     subchat_telegram_id bigint NOT NULL,
     disabled boolean DEFAULT false,
     created_at timestamp with time zone DEFAULT now(),
