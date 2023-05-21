@@ -4,8 +4,11 @@ on:
   push:
     branches:
       - "*"
+    tags:
+      - "*"
 
 env:
+  TAG: "${{ github.ref_name }}"
   VERSION_TAG: "${{ github.ref_name }}-${{ github.run_number }}"
   BRANCH_TAG: "${{ vars.DOCKER_REPO }}/${{ vars.ORGANIZATION_NAME }}-${{ github.event.repository.name }}:${{ github.ref_name }}-${{ github.run_number }}"
   LATEST_TAG: "${{ vars.DOCKER_REPO }}/${{ vars.ORGANIZATION_NAME }}-${{ github.event.repository.name }}:latest"
