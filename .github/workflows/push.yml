@@ -8,7 +8,8 @@ on:
       - "*"
 
 env:
-  TAG: "${{ github.ref_name }}"
+  DOCKER_IMAGE: "${{ vars.DOCKER_REPO }}/${{ vars.ORGANIZATION_NAME }}-${{ github.event.repository.name }}" # wmw9/blossom-core
+  TAG: "${{ vars.DOCKER_REPO }}/${{ vars.ORGANIZATION_NAME }}-${{ github.event.repository.name }}:${{ github.ref_name }}"
   VERSION_TAG: "${{ github.ref_name }}-${{ github.run_number }}"
   BRANCH_TAG: "${{ vars.DOCKER_REPO }}/${{ vars.ORGANIZATION_NAME }}-${{ github.event.repository.name }}:${{ github.ref_name }}-${{ github.run_number }}"
   LATEST_TAG: "${{ vars.DOCKER_REPO }}/${{ vars.ORGANIZATION_NAME }}-${{ github.event.repository.name }}:latest"
@@ -40,15 +41,36 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: |
+            ${{ env.DOCKER_IMAGE }}
+          # tags: |
+          #   type=ref,event=branch
+          #   type=ref,event=tag
+          #   type=semver,pattern={{raw}}
+
+      # - name: Prepare tags
+      #   id: tags
+      #   run: |
+      #     echo "VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
+      #     TAGS="${{ env.DOCKER_IMAGE }}:latest"
+      #     TAGS+=" ${{ env.DOCKER_IMAGE }}:${{ github.ref_name }}-${{ github.run_number }}"
+      #     if [[ ${{ github.ref }} == refs/tags/* ]]; then
+      #       TAGS+=" ${{ env.DOCKER_IMAGE }}:${{ github.ref_name }}"
+      #     fi
+      #     echo "TAGS=$TAGS" >> $GITHUB_ENV
+      #     echo "::set-output name=tags::$TAGS"
+
       - name: Build and push
         id: docker_build
         uses: docker/build-push-action@v4
         with:
           push: true
-          tags: |
-            "${{env.BRANCH_TAG}}"
-            "${{env.LATEST_TAG}}"
+          tags: ${{ steps.meta.outputs.tags }}
           build-args: |
-            ${{env.VERSION_TAG}}
+            VERSION=${{ env.VERSION_TAG }}
           cache-from: type=registry,ref=${{env.LATEST_TAG}}
           cache-to: type=registry,ref=${{env.LATEST_TAG}},mode=max
