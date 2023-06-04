@@ -1,0 +1,59 @@
+version: "3.9"
+services:
+  alpine:
+    image: alpine
+    container_name: alpine
+    restart: unless-stopped
+    networks:
+      - internal
+      - external
+  core:
+    build: .
+    container_name: core
+    image:
+      core
+      #entrypoint: /usr/bin/tail
+      #command: "-f /dev/null"
+      #tty: true
+    environment:
+      - BLOSSOM_CORE_PORT=${BLOSSOM_CORE_PORT}
+      - BLOSSOM_CORE_LOG_LEVEL=${BLOSSOM_CORE_LOG_LEVEL}
+      - PG_URL=${PG_URL}
+      - TWITCH_CLIENT_ID=${TWITCH_CLIENT_ID}
+      - TWITCH_CLIENT_SECRET=${TWITCH_CLIENT_SECRET}
+      - TWITCH_AUTH_REDIRECT_URL=${TWITCH_AUTH_REDIRECT_URL}
+      - TWITCH_SUBCHAT_INVITE_REDIRECT_URL=${TWITCH_SUBCHAT_INVITE_REDIRECT_URL}
+    ports:
+      - 3001:3001
+    networks:
+      - internal
+      - external
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.core.rule: "Host(`api.blsm.me`)"
+      #traefik.basic.port: 3001
+      #traefik.http.routers.core.loadbalancer.server.port: "3001"
+      traefik.http.routers.core.entrypoints: "websecure"
+      # Uses the Host rule to define which certificate to issue
+      traefik.http.routers.core.tls.certresolver:
+        "cfresolver"
+
+        #    whoami:
+        #      image: "traefik/whoami"
+        #      container_name: "whoami"
+        #      labels:
+        #        traefik.enable: "true"
+        #        traefik.http.routers.whoami.rule: "Host(`api.blsm.me`)"
+        #        traefik.http.routers.whoami.entrypoints: "websecure"
+        #        # Uses the Host rule to define which certificate to issue
+        #        traefik.http.routers.whoami.tls.certresolver: "cfresolver"
+        #      networks:
+        #        - external
+
+networks:
+  internal:
+    name: "internal"
+    internal: true
+  external:
+    name: "external"
+    external: true
