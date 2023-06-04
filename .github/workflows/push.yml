@@ -47,22 +47,6 @@ jobs:
         with:
           images: |
             ${{ env.DOCKER_IMAGE }}
-          # tags: |
-          #   type=ref,event=branch
-          #   type=ref,event=tag
-          #   type=semver,pattern={{raw}}
-
-      # - name: Prepare tags
-      #   id: tags
-      #   run: |
-      #     echo "VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
-      #     TAGS="${{ env.DOCKER_IMAGE }}:latest"
-      #     TAGS+=" ${{ env.DOCKER_IMAGE }}:${{ github.ref_name }}-${{ github.run_number }}"
-      #     if [[ ${{ github.ref }} == refs/tags/* ]]; then
-      #       TAGS+=" ${{ env.DOCKER_IMAGE }}:${{ github.ref_name }}"
-      #     fi
-      #     echo "TAGS=$TAGS" >> $GITHUB_ENV
-      #     echo "::set-output name=tags::$TAGS"
 
       - name: Build and push
         id: docker_build
