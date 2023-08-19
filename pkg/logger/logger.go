@@ -1,102 +1,136 @@
 package logger
 
 import (
-	"fmt"
-	"os"
-	"strings"
+	"context"
 
-	"github.com/rs/zerolog"
+	"github.com/uptrace/opentelemetry-go-extra/otelzap"
+	"go.uber.org/zap"
 )
 
-// Interface -.
 type Logger interface {
-	Debug(message interface{}, args ...interface{})
-	Info(message string, args ...interface{})
-	Warn(message string, args ...interface{})
-	Error(message interface{}, args ...interface{})
-	Fatal(message interface{}, args ...interface{})
+	Debug(msg any)
+	Debugw(msg string, args ...any)
+	Debugf(msg string, args ...any)
+	Info(msg any)
+	Infow(msg string, args ...any)
+	InfowContext(ctx context.Context, msg string, args ...any)
+	Infof(msg string, args ...any)
+	InfofContext(ctx context.Context, msg string, args ...any)
+	Error(msg any)
+	Errorw(msg string, args ...any)
+	Errorf(msg string, args ...any)
+	ErrorfContext(ctx context.Context, msg string, args ...any)
+	Fatal(msg any)
+	Fatalw(msg string, args ...any)
+	Fatalf(msg string, args ...any)
 }
 
 // Logger -.
 type logger struct {
-	logger *zerolog.Logger
+	log     *zap.SugaredLogger
+	otel    *otelzap.SugaredLogger
+	Tracing bool
 }
 
 var _ Logger = (*logger)(nil)
 
 // New -.
-func New(level string) Logger {
-	var l zerolog.Level
+func New(level string, opts ...Option) Logger {
+	l := &logger{}
 
-	switch strings.ToLower(level) {
-	case "error":
-		l = zerolog.ErrorLevel
-	case "warn":
-		l = zerolog.WarnLevel
-	case "info":
-		l = zerolog.InfoLevel
+	for _, opt := range opts {
+		opt(l)
+	}
+
+	cfg := zap.NewProductionConfig()
+
+	switch level {
 	case "debug":
-		l = zerolog.DebugLevel
+		cfg.Level = zap.NewAtomicLevelAt(zap.DebugLevel)
+	case "info":
+		cfg.Level = zap.NewAtomicLevelAt(zap.InfoLevel)
 	default:
-		l = zerolog.InfoLevel
+		cfg.Level = zap.NewAtomicLevelAt(zap.DebugLevel)
 	}
 
-	zerolog.SetGlobalLevel(l)
-
-	skipFrameCount := 3
-	log := zerolog.New(os.Stdout).With().Timestamp().CallerWithSkipFrameCount(zerolog.CallerSkipFrameCount + skipFrameCount).Logger()
-
-	return &logger{
-		logger: &log,
-	}
-}
-
-// Debug -.
-func (l *logger) Debug(message interface{}, args ...interface{}) {
-	l.msg("debug", message, args...)
-}
-
-// Info -.
-func (l *logger) Info(message string, args ...interface{}) {
-	l.log(message, args...)
-}
-
-// Warn -.
-func (l *logger) Warn(message string, args ...interface{}) {
-	l.log(message, args...)
-}
-
-// Error -.
-func (l *logger) Error(message interface{}, args ...interface{}) {
-	if l.logger.GetLevel() == zerolog.DebugLevel {
-		l.Debug(message, args...)
+	log, err := cfg.Build()
+	if err != nil {
+		panic(err)
 	}
 
-	l.msg("error", message, args...)
+	l.log = log.Sugar()
+
+	if l.Tracing {
+		l.otel = otelzap.New(log, otelzap.WithMinLevel(zap.DebugLevel)).Sugar()
+	}
+
+	return l
 }
 
-// Fatal -.
-func (l *logger) Fatal(message interface{}, args ...interface{}) {
-	l.msg("fatal", message, args...)
-
-	os.Exit(1)
-}
-
-func (l *logger) log(message string, args ...interface{}) {
-	if len(args) == 0 {
-		l.logger.Info().Msg(message)
-	} else {
-		l.logger.Info().Msgf(message, args...)
+func (l *logger) Debug(msg any) {
+	if l.log == nil {
+		l.otel.Debug(msg)
 	}
 }
 
-func (l *logger) msg(level string, message interface{}, args ...interface{}) {
-	switch msg := message.(type) {
-	case error:
-		l.log(msg.Error(), args...)
-	case string:
-		l.log(msg, args...)
-	default:
-		l.log(fmt.Sprintf("%s message %v has unknown type %v", level, message, msg), args...)
+func (l *logger) Debugw(msg string, args ...any) {
+	l.log.Debugw(msg)
+}
+
+func (l *logger) Debugf(msg string, args ...any) {
+	l.log.Debugf(msg, args...)
+}
+
+func (l *logger) Info(msg any) {
+	l.log.Info(msg)
+}
+
+func (l *logger) Infow(msg string, args ...any) {
+	l.log.Infow(msg, args...)
+}
+
+func (l *logger) InfowContext(ctx context.Context, msg string, args ...any) {
+	if l.Tracing {
+		l.otel.InfowContext(ctx, msg, args...)
 	}
+}
+
+func (l *logger) Infof(msg string, args ...any) {
+	l.log.Infof(msg, args...)
+}
+
+func (l *logger) InfofContext(ctx context.Context, msg string, args ...any) {
+	if l.Tracing {
+		l.otel.InfofContext(ctx, msg, args...)
+	}
+}
+
+func (l *logger) Error(msg any) {
+	l.log.Error(msg)
+}
+
+func (l *logger) Errorw(msg string, args ...any) {
+	l.log.Errorw(msg, args...)
+}
+
+func (l *logger) Errorf(msg string, args ...any) {
+	l.log.Errorf(msg, args...)
+}
+
+func (l *logger) ErrorfContext(ctx context.Context, msg string, args ...any) {
+	if l.Tracing {
+		l.otel.ErrorfContext(ctx, msg, args...)
+	}
+}
+
+func (l *logger) Fatal(msg any) {
+	l.log.Fatal(msg)
+}
+
+func (l *logger) Fatalw(msg string, args ...any) {
+	l.log.Fatalw(msg, args...)
+}
+
+func (l *logger) Fatalf(msg string, args ...any) {
+	l.log.Fatalf(msg, args...)
 }

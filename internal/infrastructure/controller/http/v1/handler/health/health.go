@@ -7,12 +7,14 @@ import (
 	"time"
 
 	"core/internal/infrastructure/controller/http/v1/response"
+	"core/pkg/logger"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 )
 
 type healthRoutes struct {
+	log            logger.Logger
 	Uptime         time.Time
 	LogLevel       string
 	ServiceVersion string
@@ -28,9 +30,10 @@ type Health struct {
 	NumGoroutine int         `json:"numGoroutine"`
 }
 
-func New(r chi.Router) {
+func New(r chi.Router, log logger.Logger) {
 	h := &healthRoutes{
 		Uptime: time.Now(),
+		log:    log,
 		// DB:     db
 	}
 
@@ -44,13 +47,15 @@ func (h *healthRoutes) Ping(w http.ResponseWriter, r *http.Request) {
 
 func (h *healthRoutes) Health(w http.ResponseWriter, r *http.Request) {
 	result := &Health{
-		NumCPU:       runtime.NumCPU(),
-		Uptime:       time.Since(h.Uptime).String(),
-		StartDate:    h.Uptime.Format(time.RFC1123),
-		OK:           true,
-		DB:           h.DB.Stats(),
+		NumCPU:    runtime.NumCPU(),
+		Uptime:    time.Since(h.Uptime).String(),
+		StartDate: h.Uptime.Format(time.RFC1123),
+		OK:        true,
+		// DB:           h.DB.Stats(),
 		NumGoroutine: runtime.NumGoroutine(),
 	}
+
+	h.log.Infow("health", "NumCPU", result.NumCPU)
 
 	render.JSON(w, r, response.Response{Data: result})
 }
