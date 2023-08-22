@@ -104,7 +104,7 @@ func (au *auth) AuthTwitchSubchat(ctx context.Context, authCode, state string) (
 	}
 
 	if !isSubscribed {
-		au.log.Error("svc - AuthTwitchSubchat: user is not subscribed", "twitch_username", user.TwitchUsername, "twitch_user_id", user.TwitchID, "broadcaster_id", broadcasterID)
+		au.log.Errorw("svc - AuthTwitchSubchat: user is not subscribed", "twitch_username", user.TwitchUsername, "twitch_user_id", user.TwitchID, "broadcaster_id", broadcasterID)
 		return "", ErrUserNotSubscribed
 	}
 

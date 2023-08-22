@@ -19,9 +19,15 @@ CREATE TABLE token (
     invite_key text
 );
 
-CREATE TABLE subchat (
-    twitch_id bigint UNIQUE NOT NULL,
-    subchat_telegram_id bigint NOT NULL,
+CREATE TABLE settings (
+    id SERIAL UNIQUE PRIMARY KEY,
+    chat_telegram_id bigint UNIQUE NOT NULL,
+    is_downloader_enabled boolean DEFAULT true
+);
+
+CREATE TABLE chat (
+    twitch_id bigint UNIQUE,
+    chat_telegram_id bigint NOT NULL,
     disabled boolean DEFAULT false,
     created_at timestamp with time zone DEFAULT now(),
     updated_at timestamp with time zone
@@ -29,13 +35,10 @@ CREATE TABLE subchat (
 
 CREATE TABLE invite (
     twitch_id bigint NOT NULL,
-    subchat_telegram_id bigint NOT NULL,
-    subchat_telegram_invite_link text
-);
+    chat_telegram_id bigint NOT NULL,
+    chat_telegram_invite_link text,
 
-ALTER TABLE
-    invite
-ADD
-    CONSTRAINT twitch_id_and_subchat_id_unique UNIQUE (twitch_id, subchat_telegram_id);
+    CONSTRAINT twitch_id_and_chat_id_unique UNIQUE (twitch_id, chat_telegram_id)
+);
 
 COMMIT;

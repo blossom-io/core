@@ -3,7 +3,6 @@ package app
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"os/signal"
 
@@ -25,12 +24,28 @@ func Run(cfg *config.Config) {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 
-	log := logger.New(cfg.App.LogLevel)
+	log := logger.New(cfg.App.LogLevel, logger.WithTracing())
+
+	// tp, err := tracing.New()
+	// if err != nil {
+	// 	log.Fatalf("app - Run - tracing.New - error initializing tracing: %w", err)
+	// }
+	// defer func() { _ = tp.Shutdown(ctx) }()
+
+	// log.Info("123")
+	// log.Infof("123: %s", fmt.Errorf("123: %s", "456"))
+	// log.Infow("123", "hello", "world")
+	// ctx, span := tp.Tracer("123").Start(ctx, "operation")
+	// span.AddEvent("Nice operation!", trace.WithAttributes(attribute.Int("bogons", 100)))
+	// span.SetAttributes(attribute.String("hello", "world"))
+	// defer span.End()
+
+	// log.ErrorfContext(ctx, "ctx %v %v", "hello", "world")
 
 	// Database
 	DB, err := postgres.New(cfg.Connections.Postgres.URL)
 	if err != nil {
-		log.Fatal(fmt.Errorf("app - Run - postgres.New - error initializing database: %w", err))
+		log.Fatalf("app - Run - postgres.New - error initializing database: %w", err)
 	}
 	defer DB.Close()
 
@@ -40,7 +55,7 @@ func Run(cfg *config.Config) {
 	// Twitch
 	twitch, err := twitch.New(ctx, cfg.Connections.Twitch.ClientID, cfg.Connections.Twitch.ClientSecret, cfg.Connections.Twitch.AuthRedirectURL)
 	if err != nil {
-		log.Fatal(fmt.Errorf("app - Run - twitch.New - error initializing twitch client: %w", err))
+		log.Fatalf("app - Run - twitch.New - error initializing twitch client: %w", err)
 	}
 
 	// Services
@@ -51,6 +66,8 @@ func Run(cfg *config.Config) {
 	api.New(r, cfg, log, authSvc)
 	HTTPSrv := httpserver.New(ctx, r, httpserver.Port(cfg.App.Port))
 	defer HTTPSrv.Close()
+
+	// span.End()
 
 	<-ctx.Done()
 	log.Info("Gracefully shutting down...")

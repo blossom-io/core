@@ -70,11 +70,11 @@ func (au *authRoutes) AuthTwitchSubchat(w http.ResponseWriter, r *http.Request) 
 	var in AuthTwitchSubchatRequest
 	in.Bind(r)
 
-	au.log.Info("auth - AuthTwitchSubchat", in)
+	au.log.Infof("auth - AuthTwitchSubchat", in)
 
 	inviteKey, err := au.auth.AuthTwitchSubchat(r.Context(), in.Code, in.State)
 	if errors.Is(service.ErrUserNotSubscribed, err) {
-		au.log.Error("auth - AuthTwitchSubchat: %w", err)
+		au.log.Errorf("auth - AuthTwitchSubchat: %w", err)
 
 		invFailedRedirectURL := fmt.Sprintf("%s/failed?err=%s&state=%s", au.cfg.SubchatInviteRedirectURL, err.Error(), in.State)
 		http.Redirect(w, r, invFailedRedirectURL, http.StatusFound)
@@ -82,7 +82,7 @@ func (au *authRoutes) AuthTwitchSubchat(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	if err != nil {
-		au.log.Error("auth - AuthTwitchSubchat: %w", err)
+		au.log.Errorf("auth - AuthTwitchSubchat: %w", err)
 
 		invFailedRedirectURL := fmt.Sprintf("%s/failed?err=%s&state=%s", au.cfg.SubchatInviteRedirectURL, err.Error(), in.State)
 		http.Redirect(w, r, invFailedRedirectURL, http.StatusFound)
@@ -97,7 +97,7 @@ func (au *authRoutes) AuthTwitchSubchat(w http.ResponseWriter, r *http.Request) 
 func (au *authRoutes) Test(w http.ResponseWriter, r *http.Request) {
 	err := au.auth.Test(r.Context())
 	if err != nil {
-		au.log.Error("auth - AuthTwitchSubchat: %w", err)
+		au.log.Errorf("auth - AuthTwitchSubchat: %w", err)
 
 		render.JSON(w, r, response.Response{Error: response.Error{Code: http.StatusUnauthorized, Message: err.Error()}})
 	}

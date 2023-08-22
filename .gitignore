@@ -12,7 +12,11 @@
 *.dll
 *.so
 *.dylib
+<<<<<<< HEAD
 __debug_bin
+=======
+__debug_bin*
+>>>>>>> feature_zap_log
 
 # Test binary, built with `go test -c`
 *.test

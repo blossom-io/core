@@ -13,7 +13,7 @@ var _ Subchater = (*repository)(nil)
 
 // IsSubchatExistsAndActive checks if subchat exists and active.
 func (r *repository) IsSubchatExistsAndActive(ctx context.Context, ownerTwitchID int64) (exists bool, err error) {
-	q, a, err := r.DB.Sq.Select("1").Prefix("SELECT EXISTS (").From("subchat").Where("twitch_id = $1", ownerTwitchID).Suffix("AND NOT disabled)").ToSql()
+	q, a, err := r.DB.Sq.Select("1").Prefix("SELECT EXISTS (").From("chat").Where("twitch_id = $1", ownerTwitchID).Suffix("AND NOT disabled)").ToSql()
 	if err != nil {
 		return false, fmt.Errorf("IsSubchatExistsAndActive - r.Sq: %w", err)
 	}

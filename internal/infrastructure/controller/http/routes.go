@@ -25,7 +25,7 @@ func New(r *chi.Mux, cfg *config.Config, log logger.Logger, authSvc service.Auth
 // NewRoutesV1 creates v1 API routes
 func NewRoutesV1(r *chi.Mux, cfg *config.Config, log logger.Logger, authSvc service.Auther) {
 	r.Route("/v1", func(r chi.Router) {
-		health.New(r)
+		health.New(r, log)
 		auth.New(r, cfg, authSvc, log)
 	})
 }
